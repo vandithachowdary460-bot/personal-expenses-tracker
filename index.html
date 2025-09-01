@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Personal Expense Tracker (₹)</title>
+<style>
+  body {
+    font-family: Arial, sans-serif;
+    max-width: 600px;
+    margin: 40px auto;
+    padding: 0 20px;
+    background: #f4f7f8;
+    color: #333;
+  }
+  h1 {
+    text-align: center;
+    margin-bottom: 20px;
+  }
+  form {
+    background: #fff;
+    padding: 15px 20px;
+    border-radius: 8px;
+    box-shadow: 0 0 8px #ccc;
+    margin-bottom: 30px;
+  }
+  form input, form select {
+    padding: 8px;
+    margin: 8px 0;
+    width: 100%;
+    box-sizing: border-box;
+    border-radius: 4px;
+    border: 1px solid #bbb;
+  }
+  form button {
+    background: #007bff;
+    border: none;
+    color: white;
+    padding: 10px;
+    width: 100%;
+    font-size: 16px;
+    border-radius: 4px;
+    cursor: pointer;
+  }
+  form button:hover {
+    background: #0056b3;
+  }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    background: #fff;
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 0 8px #ccc;
+  }
+  th, td {
+    text-align: left;
+    padding: 12px 15px;
+    border-bottom: 1px solid #ddd;
+  }
+  th {
+    background: #007bff;
+    color: white;
+  }
+  tr:hover {
+    background: #f1f1f1;
+  }
+  .delete-btn {
+    background: #dc3545;
+    border: none;
+    color: white;
+    padding: 6px 10px;
+    border-radius: 4px;
+    cursor: pointer;
+  }
+  .total {
+    text-align: right;
+    margin-top: 15px;
+    font-weight: bold;
+    font-size: 18px;
+  }
+</style>
+</head>
+<body>
+
+<h1>Personal Expense Tracker (₹)</h1>
+
+<form id="expense-form">
+  <label for="amount">Amount (₹):</label>
+  <input type="number" id="amount" min="0" step="0.01" placeholder="Enter amount in ₹" required />
+
+  <label for="category">Category:</label>
+  <select id="category" required>
+    <option value="">Select category</option>
+    <option>Food</option>
+    <option>Transport</option>
+    <option>Bills</option>
+    <option>Entertainment</option>
+    <option>Shopping</option>
+    <option>Other</option>
+  </select>
+
+  <label for="description">Description (optional):</label>
+  <input type="text" id="description" placeholder="E.g., Grocery shopping" />
+
+  <label for="date">Date:</label>
+  <input type="date" id="date" required />
+
+  <button type="submit">Add Expense</button>
+</form>
+
+<table id="expense-table">
+  <thead>
+    <tr>
+      <th>Date</th>
+      <th>Category</th>
+      <th>Description</th>
+      <th>Amount (₹)</th>
+      <th>Action</th>
+    </tr>
+  </thead>
+  <tbody>
+    <!-- Expenses will go here -->
+  </tbody>
+</table>
+
+<div class="total" id="total-expense">Total Expense: ₹0.00</div>
+
+<script>
+  const expenseForm = document.getElementById('expense-form');
+  const expenseTableBody = document.querySelector('#expense-table tbody');
+  const totalExpenseEl = document.getElementById('total-expense');
+
+  let expenses = [];
+
+  // Load from localStorage
+  function loadExpenses() {
+    const saved = localStorage.getItem('expenses');
+    if (saved) {
+      expenses = JSON.parse(saved);
+    } else {
+      expenses = [];
+    }
+  }
+
+  // Save to localStorage
+  function saveExpenses() {
+    localStorage.setItem('expenses', JSON.stringify(expenses));
+  }
+
+  // Render expenses to table
+  function renderExpenses() {
+    expenseTableBody.innerHTML = '';
+    let total = 0;
+
+    expenses.forEach((expense, index) => {
+      total += parseFloat(expense.amount);
+      const tr = document.createElement('tr');
+
+      tr.innerHTML = `
+        <td>${expense.date}</td>
+        <td>${expense.category}</td>
+        <td>${expense.description || '-'}</td>
+        <td>₹${parseFloat(expense.amount).toFixed(2)}</td>
+        <td><button class="delete-btn" data-index="${index}">Delete</button></td>
+      `;
+
+      expenseTableBody.appendChild(tr);
+    });
+
+    totalExpenseEl.textContent = `Total Expense: ₹${total.toFixed(2)}`;
+  }
+
+  // Add expense
+  expenseForm.addEventListener('submit', (e) => {
+    e.preventDefault();
+
+    const amount = expenseForm.amount.value.trim();
+    const category = expenseForm.category.value;
+    const description = expenseForm.description.value.trim();
+    const date = expenseForm.date.value;
+
+    if (!amount || !category || !date) {
+      alert('Please fill in all required fields.');
+      return;
+    }
+
+    expenses.push({ amount, category, description, date });
+    saveExpenses();
+    renderExpenses();
+
+    expenseForm.reset();
+  });
+
+  // Delete expense
+  expenseTableBody.addEventListener('click', (e) => {
+    if (e.target.classList.contains('delete-btn')) {
+      const idx = e.target.getAttribute('data-index');
+      expenses.splice(idx, 1);
+      saveExpenses();
+      renderExpenses();
+    }
+  });
+
+  // Initialize
+  loadExpenses();
+  renderExpenses();
+</script>
+
+</body>
+</html>
